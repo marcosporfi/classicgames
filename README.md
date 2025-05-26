@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from turtle import RawTurtle, ScrolledCanvas
 from tkinter import messagebox  # Único uso do tkinter: messagebox
-# (não tem alternativa no CustomTkinter ainda)
+
 
 
 ctk.set_appearance_mode("dark")
