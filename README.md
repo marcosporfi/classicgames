@@ -1,94 +1,161 @@
 import customtkinter as ctk
-import turtle
-from functools import partial
+from turtle import RawTurtle, ScrolledCanvas
+from tkinter import messagebox  # Único uso do tkinter: messagebox
+# (não tem alternativa no CustomTkinter ainda)
 
 
-ctk.set_appearance_mode("dark")      
-ctk.set_default_color_theme("dark-blue")  
-
-
-tela = turtle.Screen()
-tela.bgcolor("black")
-tela.title("Desenho com Turtle")
-tela.setup(width=600, height=600)
-
-t = turtle.Turtle()
-t.speed(3)
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("dark-blue")
 
 
 forma_selecionada = None
 cor_selecionada = None
+botoes_forma = {}
+botoes_cor = {}
+
+cores_map = {
+    "Vermelho": "red",
+    "Azul": "blue",
+    "Verde": "green",
+    "Amarelo": "yellow"
+}
 
 def desenhar():
-    t.clear()
-    t.penup()
-    t.color(cor_selecionada)
-    t.fillcolor(cor_selecionada)
+    if not forma_selecionada or not cor_selecionada:
+        messagebox.showwarning("Aviso", "Selecione uma forma e uma cor antes de desenhar.")
+        return
 
-    if forma_selecionada == "quadrado":
-        t.goto(-100, -100)
-        t.setheading(0)
-        t.pendown()
-        t.begin_fill()
+    tamanho = scale_tamanho.get()
+    turtle.clear()
+    turtle.reset()
+    turtle.hideturtle()
+    turtle.speed(1)
+    turtle.pensize(5)
+    turtle.color(cores_map[cor_selecionada])
+    turtle.fillcolor(cores_map[cor_selecionada])
+    turtle.penup()
+    turtle.begin_fill()
+
+    if forma_selecionada == "Quadrado":
+        turtle.goto(-tamanho//2, tamanho//2)
+        turtle.pendown()
         for _ in range(4):
-            t.forward(200)
-            t.left(90)
-        t.end_fill()
-
-    elif forma_selecionada == "triangulo":
-        t.goto(-100, -86)
-        t.setheading(0)
-        t.pendown()
-        t.begin_fill()
+            turtle.forward(tamanho)
+            turtle.right(90)
+    elif forma_selecionada == "Triângulo":
+        turtle.goto(-tamanho//2, -tamanho//3)
+        turtle.pendown()
         for _ in range(3):
-            t.forward(200)
-            t.left(120)
-        t.end_fill()
+            turtle.forward(tamanho)
+            turtle.left(120)
+    elif forma_selecionada == "Círculo":
+        turtle.goto(0, -tamanho//2)
+        turtle.pendown()
+        turtle.circle(tamanho // 2)
 
-    elif forma_selecionada == "circulo":
-        t.goto(0, -100)
-        t.setheading(0)
-        t.pendown()
-        t.begin_fill()
-        t.circle(100)
-        t.end_fill()
+    turtle.end_fill()
+    turtle.penup()
 
-def selecionar_forma(f):
+def limpar_desenho():
+    global forma_selecionada, cor_selecionada
+    turtle.clear()
+    turtle.reset()
+    turtle.hideturtle()
+    forma_selecionada = None
+    cor_selecionada = None
+    for btn in botoes_forma.values():
+        btn.configure(fg_color="black", border_color="white")
+    for btn in botoes_cor.values():
+        btn.configure(fg_color="black", border_color="white")
+    atualizar_status()
+
+def selecionar_forma(forma):
     global forma_selecionada
-    forma_selecionada = f
-    checar_para_desenhar()
+    forma_selecionada = forma
+    for f, btn in botoes_forma.items():
+        if f == forma:
+            btn.configure(fg_color="#222222", border_color="white")
+        else:
+            btn.configure(fg_color="black", border_color="white")
+    atualizar_status()
 
-def selecionar_cor(c):
+def selecionar_cor(cor):
     global cor_selecionada
-    cor_selecionada = c
-    checar_para_desenhar()
+    cor_selecionada = cor
+    for c, btn in botoes_cor.items():
+        if c == cor:
+            btn.configure(fg_color="#222222", border_color="white")
+        else:
+            btn.configure(fg_color="black", border_color="white")
+    atualizar_status()
 
-def checar_para_desenhar():
-    if forma_selecionada and cor_selecionada:
-        desenhar()
-
-
-app = ctk.CTk()
-app.title("Desenhador Interativo")
-app.geometry("320x420")
-
-
-titulo = ctk.CTkLabel(app, text="Escolha uma forma", font=ctk.CTkFont(size=18, weight="bold"))
-titulo.pack(pady=12)
-
-
-ctk.CTkButton(app, text="Quadrado", command=partial(selecionar_forma, "quadrado")).pack(pady=5)
-ctk.CTkButton(app, text="Triângulo", command=partial(selecionar_forma, "triangulo")).pack(pady=5)
-ctk.CTkButton(app, text="Círculo", command=partial(selecionar_forma, "circulo")).pack(pady=5)
+def atualizar_status():
+    texto = "Selecionado: "
+    if forma_selecionada:
+        texto += forma_selecionada
+    if cor_selecionada:
+        texto += f" {cor_selecionada}"
+    label_status.configure(text=texto)
 
 
-ctk.CTkLabel(app, text="Escolha uma cor", font=ctk.CTkFont(size=18, weight="bold")).pack(pady=20)
+janela = ctk.CTk()
+janela.title("Geometric Design")
+janela.geometry("860x720")
+janela.configure(fg_color="black")
 
 
-ctk.CTkButton(app, text="Red", command=partial(selecionar_cor, "red")).pack(pady=4)
-ctk.CTkButton(app, text="Blue", command=partial(selecionar_cor, "blue")).pack(pady=4)
-ctk.CTkButton(app, text="Green", command=partial(selecionar_cor, "green")).pack(pady=4)
-ctk.CTkButton(app, text="Yellow", command=partial(selecionar_cor, "yellow")).pack(pady=4)
+ctk.CTkLabel(janela, text="🎨 Geometric Design", font=ctk.CTkFont(size=18, weight="bold"), text_color="white").pack(pady=10)
 
 
-app.mainloop()
+ctk.CTkLabel(janela, text="Escolha uma forma:", font=ctk.CTkFont(size=14), text_color="white").pack()
+frame_formas = ctk.CTkFrame(janela, fg_color="black")
+frame_formas.pack(pady=5)
+for nome, simbolo in [("Quadrado", "■"), ("Triângulo", "▲"), ("Círculo", "●")]:
+    btn = ctk.CTkButton(frame_formas, text=f"{simbolo} {nome}", width=140,
+                        fg_color="black", border_color="white", border_width=2,
+                        text_color="white", hover_color="#333333",
+                        command=lambda f=nome: selecionar_forma(f))
+    btn.pack(side="left", padx=8)
+    botoes_forma[nome] = btn
+
+
+ctk.CTkLabel(janela, text="Escolha uma cor:", font=ctk.CTkFont(size=14), text_color="white").pack(pady=10)
+frame_cores = ctk.CTkFrame(janela, fg_color="black")
+frame_cores.pack()
+for cor in cores_map:
+    btn = ctk.CTkButton(frame_cores, text=cor, width=140,
+                        fg_color="black", border_color="white", border_width=2,
+                        text_color="white", hover_color="#333333",
+                        command=lambda c=cor: selecionar_cor(c))
+    btn.pack(side="left", padx=8)
+    botoes_cor[cor] = btn
+
+
+ctk.CTkLabel(janela, text="Tamanho do desenho:", font=ctk.CTkFont(size=14), text_color="white").pack(pady=10)
+scale_tamanho = ctk.CTkSlider(janela, from_=10, to=250, number_of_steps=240, width=300, button_color="white")
+scale_tamanho.set(150)
+scale_tamanho.pack(pady=5)
+
+
+label_status = ctk.CTkLabel(janela, text="Selecionado: ", text_color="gray", font=ctk.CTkFont(size=12, slant="italic"))
+label_status.pack(pady=10)
+
+
+frame_acoes = ctk.CTkFrame(janela, fg_color="black")
+frame_acoes.pack(pady=10)
+for texto, comando in [("Desenhar", desenhar), ("Limpar", limpar_desenho)]:
+    ctk.CTkButton(frame_acoes, text=texto, width=120,
+                  fg_color="black", border_color="white", border_width=2,
+                  text_color="white", hover_color="#333333",
+                  command=comando).pack(side="left", padx=10)
+
+
+canvas = ScrolledCanvas(janela, width=800, height=300)
+canvas.pack(padx=10, pady=15)
+canvas.config(bg="black")  # fundo preto
+turtle = RawTurtle(canvas)
+turtle.hideturtle()
+turtle.speed(0)
+
+
+janela.mainloop()
